@@ -1,0 +1,164 @@
+﻿@model List<string>
+
+
+<style type="text/css">
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #map-canvas {
+        height: 50%;
+        width: 50%
+    }
+</style>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+    <body>
+
+        <div id="google">
+            @{
+                this.Html.RenderAction("GoogleImg");
+            }
+        </div>
+        <div id="flickr">
+            @{
+                this.Html.RenderAction("FlickrImg");
+            }
+        </div>
+        <div id="weather">
+            @{
+                this.Html.RenderAction("Weather");
+            }
+        </div>
+        <div id="rss">
+        </div>
+        <div>
+            <input id="address4"></input>
+        </div>
+
+        <div id="map-canvas" />
+    </body>
+</html>
+
+<script type="text/javascript">
+
+    var map;
+    var geocoder;
+
+    function initialize() {
+        var mapOptions = {
+            zoom: 8,
+            center: new google.maps.LatLng(52.397, 22.644),
+            zoomControl: true,
+            zoomControlOptions: {
+                style: google.maps.ZoomControlStyle.LARGE,
+                position: google.maps.ControlPosition.LEFT_TOP
+            },
+        };
+
+        map = new google.maps.Map(document.getElementById('map-canvas'),
+            mapOptions);
+        geocoder = new google.maps.Geocoder();
+        google.maps.event.addListener(map, 'click', function(event) {
+            placeMarker(event.latLng);
+        });
+
+    }
+
+    function loadScript() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&' +
+            'callback=initialize';
+        document.body.appendChild(script);
+    }
+
+
+    var marker;
+    function placeMarker(location) {
+        if (marker) { 
+            marker.setPosition(location); 
+        } else {
+            marker = new google.maps.Marker({ 
+                position: location,
+                map: map
+            });
+        }
+
+        getAddress(location);
+    }
+
+    var url = "@Url.Action("FlickrImg", "Main")";
+    var url2 = "@Url.Action("GoogleImg", "Main")";
+    var url3 = "@Url.Action("Weather", "Main")";
+
+    function getAddress(latLng) {
+
+        geocoder.geocode({ 'latLng': latLng },
+          function (results, status) {
+              if (status == google.maps.GeocoderStatus.OK) {
+
+                  if (results[0]) {
+                      var comps = results[0].address_components;
+
+
+                      var city;
+                      if (comps[3].long_name[0].toUpperCase() == comps[3].long_name[0]) {
+                          city = comps[3].long_name;
+                      } else {
+                          city = comps[2].long_name;
+                      }
+
+                      $.post(url,
+                          { text: city },
+                          function (data) {
+                              $("#flickr").html(data);
+                          });
+                      $.post(url2,
+                          { text: city },
+                          function (data) {
+                              $("#google").html(data);
+                          });
+                      $.post(url3,
+                          { text: city },
+                          function (data) {
+                              $("#weather").html(data);
+                          });
+                    
+                     
+                              var feedControl = new google.feeds.FeedControl();
+
+                              feedControl.addFeed("https://news.google.com/news/feeds?q=" + city + "&output=rss");
+
+                              feedControl.draw(document.getElementById("rss"));
+
+                          
+                      
+
+                      $("#address4").val(city);
+                  
+                  }
+                  else {
+                      document.getElementById("address").value = "No results";
+                  }
+              }
+              else {
+                  document.getElementById("address").value = status;
+              }
+          });
+    }
+    
+    google.load("feeds", "1");
+
+    window.onload = loadScript;
+
+</script>

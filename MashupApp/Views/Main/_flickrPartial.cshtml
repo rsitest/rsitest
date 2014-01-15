@@ -1,0 +1,8 @@
+﻿@model List<string>
+
+Flickr Images
+
+@foreach (var url in Model)
+{
+    <img src="@url" alt="Image" height="100" width="100" />
+}

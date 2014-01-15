@@ -1,0 +1,20 @@
+﻿@model free.localweather.Current_Condition
+
+@{
+    var urlObj = Model.weatherIconUrl != null ? Model.weatherIconUrl.Select(url => url.value) : new string[]{};
+}
+
+<img src="@urlObj.FirstOrDefault()" />
+<table>
+    <tr>
+        <td><label>Temp C</label></td>
+        <td>@Model.temp_C</td>
+    </tr>
+    <tr>   <td><label>Cloud Cover</label></td><td>@Model.cloudcover</td></tr>
+    <tr>   <td><label>Humidity</label></td><td>@Model.humidity</td></tr>
+    <tr>    <td><label>Visibility</label></td><td>@Model.visibility</td></tr>
+    <tr>
+        <td><label>Pressue</label></td>
+        <td>@Model.pressure</td>
+    </tr>
+</table>
